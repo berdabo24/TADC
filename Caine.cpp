@@ -11,6 +11,8 @@ extern int caineDeathSeqState;
 extern float caineDeathSeqTimer;
 extern int caineIntroSeqState;
 extern int difficultyLevel;
+extern float screenShakeTimer;
+extern float screenShakeIntensity;
 
 using namespace ProjectCaine;
 
@@ -1206,36 +1208,116 @@ void Caine::update(float deltaTime)
                 continue;
             }
 
-            // Check collision against Kinger
-            float kingerScale = ::myvirtualworld.kinger.uniformScale;
-            float radius = 3.0f * kingerScale;
-            float hitTolerance = 4.0f; // tolerance for thin line collision check
-
-            float dx = projectiles[i].posX - ::myvirtualworld.kinger.posX;
-            float dz = projectiles[i].posZ - ::myvirtualworld.kinger.posZ;
-            float distXZ = std::sqrt(dx * dx + dz * dz);
-
-            if (distXZ <= (radius + hitTolerance))
+            // Check collision against walls, cubes, or obstacles when in Phase 3 Hard mode
+            bool exploded = false;
+            if (difficultyLevel == 2 && currentPhase == 3)
             {
-                float kingerMinY = ::myvirtualworld.kinger.posY;
-                float kingerMaxY = ::myvirtualworld.kinger.posY + 22.0f * kingerScale;
-
-                if (projectiles[i].posY >= (kingerMinY - hitTolerance) && 
-                    projectiles[i].posY <= (kingerMaxY + hitTolerance))
+                float dummyX, dummyZ, dummyGroundY;
+                float projRadius = 4.0f; // matches sphere size
+                
+                bool hitWall = ::myvirtualworld.environment.checkWallCollision(projectiles[i].posX, projectiles[i].posZ, projRadius, dummyX, dummyZ);
+                bool hitObstacle = ::myvirtualworld.environment.checkObstacleCollision(projectiles[i].posX, projectiles[i].posZ, projectiles[i].posY, projRadius, dummyX, dummyZ, dummyGroundY, true);
+                bool hitGround = (projectiles[i].posY <= -18.7f); // ground level safety check
+                
+                if (hitWall || hitObstacle || hitGround)
                 {
-                    // Hit! Apply damage to Kinger based on currentPhase
-                    int damage = 1;
-                    if (difficultyLevel == 2)
-                    {
-                        if (currentPhase == 3) damage = 5;
-                        else damage = 2;
-                    }
-                    else if (currentPhase == 2 || currentPhase == 3)
-                    {
-                        damage = 2;
-                    }
-                    ::myvirtualworld.kinger.takeDamage(damage);
+                    exploded = true;
                     projectiles[i].active = false;
+                    
+                    // Trigger meteor explosion burst particle effect
+                    ::myvirtualworld.environment.spawnMeteorBurst(projectiles[i].posX, projectiles[i].posY, projectiles[i].posZ);
+                    
+                    // Trigger camera screen shake
+                    screenShakeTimer = 0.4f;
+                    screenShakeIntensity = 4.0f;
+                    
+                    // Damage and knockback collision checks against Kinger
+                    float dx = ::myvirtualworld.kinger.posX - projectiles[i].posX;
+                    float dz = ::myvirtualworld.kinger.posZ - projectiles[i].posZ;
+                    float dist = std::sqrt(dx * dx + dz * dz);
+                    float explosionRadius = 50.0f;
+                    
+                    if (dist < explosionRadius)
+                    {
+                        float kDirX = 0.0f;
+                        float kDirZ = 1.0f;
+                        if (dist > 0.1f)
+                        {
+                            kDirX = dx / dist;
+                            kDirZ = dz / dist;
+                        }
+                        
+                        // Knockback Kinger
+                        ::myvirtualworld.kinger.knockbackVelX = kDirX * 150.0f;
+                        ::myvirtualworld.kinger.knockbackVelZ = kDirZ * 150.0f;
+                        ::myvirtualworld.kinger.velocityY = 30.0f;
+                        ::myvirtualworld.kinger.isGrounded = false;
+                        
+                        ::myvirtualworld.kinger.takeDamage(10);
+                    }
+                    
+                    // Damage and knockback all Gloinks within blast radius
+                    for (int gi = 0; gi < (int)::myvirtualworld.gloinks.animation.activeGloinks.size(); gi++)
+                    {
+                        auto& gloink = ::myvirtualworld.gloinks.animation.activeGloinks[gi];
+                        if (gloink.isDead) continue;
+                        
+                        float gdx = gloink.posX - projectiles[i].posX;
+                        float gdz = gloink.posZ - projectiles[i].posZ;
+                        float gdist = std::sqrt(gdx * gdx + gdz * gdz);
+                        
+                        if (gdist < explosionRadius)
+                        {
+                            float gDirX = 0.0f;
+                            float gDirZ = 1.0f;
+                            if (gdist > 0.1f)
+                            {
+                                gDirX = gdx / gdist;
+                                gDirZ = gdz / gdist;
+                            }
+                            
+                            gloink.isKnockedBack = true;
+                            gloink.knockbackTimer = 0.4f;
+                            gloink.knockbackDirX = gDirX;
+                            gloink.knockbackDirZ = gDirZ;
+                        }
+                    }
+                }
+            }
+
+            if (!exploded)
+            {
+                // Check collision against Kinger
+                float kingerScale = ::myvirtualworld.kinger.uniformScale;
+                float radius = 3.0f * kingerScale;
+                float hitTolerance = 4.0f; // tolerance for thin line collision check
+
+                float dx = projectiles[i].posX - ::myvirtualworld.kinger.posX;
+                float dz = projectiles[i].posZ - ::myvirtualworld.kinger.posZ;
+                float distXZ = std::sqrt(dx * dx + dz * dz);
+
+                if (distXZ <= (radius + hitTolerance))
+                {
+                    float kingerMinY = ::myvirtualworld.kinger.posY;
+                    float kingerMaxY = ::myvirtualworld.kinger.posY + 22.0f * kingerScale;
+
+                    if (projectiles[i].posY >= (kingerMinY - hitTolerance) && 
+                        projectiles[i].posY <= (kingerMaxY + hitTolerance))
+                    {
+                        // Hit! Apply damage to Kinger based on currentPhase
+                        int damage = 1;
+                        if (difficultyLevel == 2)
+                        {
+                            if (currentPhase == 3) damage = 5;
+                            else damage = 2;
+                        }
+                        else if (currentPhase == 2 || currentPhase == 3)
+                        {
+                            damage = 2;
+                        }
+                        ::myvirtualworld.kinger.takeDamage(damage);
+                        projectiles[i].active = false;
+                    }
                 }
             }
         }
