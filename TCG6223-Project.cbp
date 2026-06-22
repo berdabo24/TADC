@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="TCG6223-Project" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/TCP6213-Project" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/TCP6213-Project" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-std=c++11" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Linker>
+			<Add option="-lopengl32" />
+			<Add option="-lglu32" />
+			<Add option="-lglut32" />
+			<Add option="-lwinmm" />
+		</Linker>
+		<Unit filename="AudioManager.cpp" />
+		<Unit filename="AudioManager.hpp" />
+		<Unit filename="Butterfly.cpp" />
+		<Unit filename="Butterfly.hpp" />
+		<Unit filename="CNAWorld.cpp" />
+		<Unit filename="CNAWorld.hpp" />
+		<Unit filename="CNAmain.cpp" />
+		<Unit filename="CNAmain.hpp" />
+		<Unit filename="Caine.cpp" />
+		<Unit filename="Caine.hpp" />
+		<Unit filename="CaineAnimation.cpp" />
+		<Unit filename="CaineAnimation.hpp" />
+		<Unit filename="Environment.cpp" />
+		<Unit filename="Environment.hpp" />
+		<Unit filename="Gloinks.cpp" />
+		<Unit filename="Gloinks.hpp" />
+		<Unit filename="GloinksAnimation.cpp" />
+		<Unit filename="GloinksAnimation.hpp" />
+		<Unit filename="Kinger.cpp" />
+		<Unit filename="Kinger.hpp" />
+		<Unit filename="KingerAnimation.cpp" />
+		<Unit filename="KingerAnimation.hpp" />
+		<Unit filename="KingerRoll.cpp" />
+		<Unit filename="KingerRoll.hpp" />
+		<Unit filename="ObjModel.cpp" />
+		<Unit filename="ObjModel.hpp" />
+		<Unit filename="TextureLoader.cpp" />
+		<Unit filename="TextureLoader.hpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
