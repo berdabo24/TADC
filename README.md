@@ -3,4 +3,7 @@ A Fan game made for a Computer Graphics project. This repository is a clone of t
 
 This clone repo was made to include the HARD difficulty into the game, intended for friends to try out and beat the hard level!
 
-
+## Instructions
+1. Download the repo as ZIP or clone the repo
+2. Extract the files
+3. Run TADC.exe
